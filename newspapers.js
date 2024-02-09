@@ -1,7 +1,7 @@
 const newspapers = [
     {
-        name: 'thetimes',
-        address: 'https://www.thetimes.co.uk',
+        name: 'bbc',
+        address: 'https://www.bbc.co.uk/news',
     },
     {
         name: 'guardian',
