@@ -31,12 +31,14 @@ async function scrapeNews(keyword, name) {
                 if (url.startsWith('/')) {
                     url = baseUrl + url;
                 }
+                let imageUrl = getImageUrl($, element, baseUrl);
 
                 if (keywordRegex.test(title)) {
                     allHeadlines.push({
-                        title,
-                        url,
+                        title: title,
+                        url: url,
                         source: newspaper.name,
+                        imageUrl: imageUrl
                     });
                 }
             });
@@ -50,3 +52,20 @@ async function scrapeNews(keyword, name) {
 }
 
 module.exports = { scrapeNews };
+
+function getImageUrl($, element, baseUrl) {
+    const defaultImageUrl = 'https://spark-games.co.uk/images/logo.png';
+    let imageUrl = $(element).find('img').attr('src') ||
+        $(element).siblings('img').attr('src') ||
+        $(element).closest('article, section').find('img').attr('src') ||
+        $(element).find('img').attr('data-src'); // Attempt to find an image URL
+
+
+    // If no image URL is found, then assign a default image URL
+    if (!imageUrl) {
+        imageUrl = defaultImageUrl;
+    } else if (!imageUrl.startsWith('http')) {
+        imageUrl = new URL(imageUrl, baseUrl).toString(); // Convert relative URLs to absolute
+    }
+    return imageUrl;
+}
