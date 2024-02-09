@@ -16,14 +16,19 @@ async function scrapeNews(keyword) {
             const keywordRegex = new RegExp(`\\b${keyword}\\b`, 'i'); // This is correct for regex matching
 
             $('a').each((_, element) => {
+                const source = name;
                 const title = $(element).text();
-                const link = $(element).attr('href');
-                const source = address.match(/(?:https?:\/\/)?(?:www\.)?([^\/]+)/)[0];
-
+                const baseUrl = new URL(address).origin;
+                let url = $(element).attr('href'); // Change const to let
+                if(url.startsWith('/')) { // Simplified check for relative URLs
+                    url = baseUrl + url;
+                }
+            
                 if (keywordRegex.test(title)) {
-                    headlines.push({ title, link, source: source });
+                    headlines.push({ title, url, source });
                 }
             });
+            
 
             return headlines;
         } catch (error) {
