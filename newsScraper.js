@@ -2,6 +2,8 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const newspapers = require('./newspapers');
 
+const defaultImageUrl ='http://localhost:8001/imgs/newspaper.png';
+
 async function scrapeNews(keyword, name) {
     let targetNewspapers = newspapers;
 
@@ -34,7 +36,8 @@ async function scrapeNews(keyword, name) {
                 if (url && keywordRegex.test(title)) {
                     // Ensure the URL is not undefined or null before proceeding
                     try {
-                        let imageUrl = await getFirstImageUrl(url); 
+                        let imageUrl = defaultImageUrl;
+                        //let imageUrl = await getFirstImageUrl(url); 
                         allHeadlines.push({
                             title: title,
                             url: url,
