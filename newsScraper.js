@@ -2,9 +2,9 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const newspapers = require('./newspapers');
 
-const defaultImageUrl ='http://localhost:8001/imgs/newspaper.png';
+const defaultImageUrl = 'http://localhost:8001/imgs/newspaper.png';
 
-async function scrapeNews(keyword, name) {
+async function scrapeNews(keyword, name, thumb) {
     let targetNewspapers = newspapers;
 
     if (name) {
@@ -34,20 +34,21 @@ async function scrapeNews(keyword, name) {
                 }
 
                 if (url && keywordRegex.test(title)) {
-                    // Ensure the URL is not undefined or null before proceeding
-                    try {
-                        let imageUrl = defaultImageUrl;
-                        //let imageUrl = await getFirstImageUrl(url); 
-                        allHeadlines.push({
-                            title: title,
-                            url: url,
-                            source: newspaper.name,
-                            imageUrl: imageUrl
-                        });
-                    } catch (error) {
-                        console.error(`Failed to fetch image for ${url}:`, error);
-                        // Optionally push the headline with a default or empty imageUrl
+                    let newsItem = { title: title, url: url, source: newspaper.name };
+
+                    if (thumb) {
+                        try {
+                            // Directly assign imageUrl to newsItem if thumb is true
+                            let imageUrl = await getFirstImageUrl(url);
+                            newsItem.imageUrl = imageUrl || defaultImageUrl;
+                        } catch (error) {
+                            console.error(`Failed to fetch image for ${url}:`, error);
+                            // Optionally assign defaultImageUrl in case of error
+                            newsItem.imageUrl = defaultImageUrl;
+                        }
                     }
+
+                    allHeadlines.push(newsItem);
                 }
             }
         } catch (error) {
@@ -65,7 +66,7 @@ async function getFirstImageUrl(url) {
         const $ = cheerio.load(response.data);
         let imageUrl = $('img').first().attr('src');
 
-        if (!imageUrl.startsWith('http')) {
+        if (imageUrl && !imageUrl.startsWith('http')) {
             // Convert relative URLs to absolute
             imageUrl = new URL(imageUrl, url).toString();
         }
@@ -73,7 +74,8 @@ async function getFirstImageUrl(url) {
         return imageUrl;
     } catch (error) {
         console.error('Failed to fetch image:', error);
-        throw error; // Rethrow to handle it in the calling context
+        // Instead of rethrowing, return undefined to allow defaultImageUrl handling upstream
+        return undefined;
     }
 }
 
