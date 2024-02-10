@@ -5,7 +5,6 @@ const newspapers = require('./newspapers');
 async function scrapeNews(keyword, name) {
     let targetNewspapers = newspapers;
 
-    // If a name is provided, filter for that specific newspaper. Otherwise, target all newspapers.
     if (name) {
         const filteredNewspapers = newspapers.filter(newspaper => newspaper.name === name);
         if (filteredNewspapers.length === 0) {
@@ -22,26 +21,32 @@ async function scrapeNews(keyword, name) {
             const $ = cheerio.load(response.data);
             const keywordRegex = new RegExp(`\\b${keyword}\\b`, 'i');
 
-            $('a').each((_, element) => {
-                const title = $(element).text();
+            const links = $('a').toArray(); // Convert jQuery object to an array for iteration
+            for (const element of links) {
+                const title = $(element).text().trim();
                 let url = $(element).attr('href');
                 const baseUrl = new URL(newspaper.address).origin;
 
-                // Ensure absolute URL
-                if (url.startsWith('/')) {
+                if (url && url.startsWith('/')) {
                     url = baseUrl + url;
                 }
-                let imageUrl = getImageUrl($, element, baseUrl);
 
-                if (keywordRegex.test(title)) {
-                    allHeadlines.push({
-                        title: title,
-                        url: url,
-                        source: newspaper.name,
-                        imageUrl: imageUrl
-                    });
+                if (url && keywordRegex.test(title)) {
+                    // Ensure the URL is not undefined or null before proceeding
+                    try {
+                        let imageUrl = await getFirstImageUrl(url); 
+                        allHeadlines.push({
+                            title: title,
+                            url: url,
+                            source: newspaper.name,
+                            imageUrl: imageUrl
+                        });
+                    } catch (error) {
+                        console.error(`Failed to fetch image for ${url}:`, error);
+                        // Optionally push the headline with a default or empty imageUrl
+                    }
                 }
-            });
+            }
         } catch (error) {
             console.error(`Error scraping ${newspaper.name}:`, error);
             continue;
@@ -51,21 +56,22 @@ async function scrapeNews(keyword, name) {
     return allHeadlines;
 }
 
-module.exports = { scrapeNews };
+async function getFirstImageUrl(url) {
+    try {
+        const response = await axios.get(url);
+        const $ = cheerio.load(response.data);
+        let imageUrl = $('img').first().attr('src');
 
-function getImageUrl($, element, baseUrl) {
-    const defaultImageUrl = 'https://spark-games.co.uk/images/logo.png';
-    let imageUrl = $(element).find('img').attr('src') ||
-        $(element).siblings('img').attr('src') ||
-        $(element).closest('article, section').find('img').attr('src') ||
-        $(element).find('img').attr('data-src'); // Attempt to find an image URL
+        if (!imageUrl.startsWith('http')) {
+            // Convert relative URLs to absolute
+            imageUrl = new URL(imageUrl, url).toString();
+        }
 
-
-    // If no image URL is found, then assign a default image URL
-    if (!imageUrl) {
-        imageUrl = defaultImageUrl;
-    } else if (!imageUrl.startsWith('http')) {
-        imageUrl = new URL(imageUrl, baseUrl).toString(); // Convert relative URLs to absolute
+        return imageUrl;
+    } catch (error) {
+        console.error('Failed to fetch image:', error);
+        throw error; // Rethrow to handle it in the calling context
     }
-    return imageUrl;
 }
+
+module.exports = { scrapeNews };
