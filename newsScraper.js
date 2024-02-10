@@ -17,13 +17,15 @@ async function scrapeNews(keyword, name, thumb) {
     }
 
     const allHeadlines = [];
+    const seenTitles = new Set(); // Set to track seen titles
+
     for (const newspaper of targetNewspapers) {
         try {
             const response = await axios.get(newspaper.address);
             const $ = cheerio.load(response.data);
             const keywordRegex = new RegExp(`\\b${keyword}\\b`, 'i');
 
-            const links = $('a').toArray(); // Convert jQuery object to an array for iteration
+            const links = $('a').toArray();
             for (const element of links) {
                 const title = $(element).text().trim();
                 let url = $(element).attr('href');
@@ -33,22 +35,21 @@ async function scrapeNews(keyword, name, thumb) {
                     url = baseUrl + url;
                 }
 
-                if (url && keywordRegex.test(title)) {
+                if (url && keywordRegex.test(title) && !seenTitles.has(title)) {
                     let newsItem = { title: title, url: url, source: newspaper.name };
 
                     if (thumb) {
                         try {
-                            // Directly assign imageUrl to newsItem if thumb is true
                             let imageUrl = await getFirstImageUrl(url);
                             newsItem.imageUrl = imageUrl || defaultImageUrl;
                         } catch (error) {
                             console.error(`Failed to fetch image for ${url}:`, error);
-                            // Optionally assign defaultImageUrl in case of error
                             newsItem.imageUrl = defaultImageUrl;
                         }
                     }
 
                     allHeadlines.push(newsItem);
+                    seenTitles.add(title); // Mark this title as seen
                 }
             }
         } catch (error) {
@@ -67,15 +68,13 @@ async function getFirstImageUrl(url) {
         let imageUrl = $('img').first().attr('src');
 
         if (imageUrl && !imageUrl.startsWith('http')) {
-            // Convert relative URLs to absolute
             imageUrl = new URL(imageUrl, url).toString();
         }
 
         return imageUrl;
     } catch (error) {
         console.error('Failed to fetch image:', error);
-        // Instead of rethrowing, return undefined to allow defaultImageUrl handling upstream
-        return undefined;
+        return undefined; // Allow for default image handling
     }
 }
 

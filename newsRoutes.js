@@ -14,11 +14,18 @@ router.get('/api/news/:name?', async (req, res) => {
         return res.status(400).send('Keyword query parameter is required');
     }
 
-    const includeThumb = thumb == 'true';
+    const includeThumb = thumb === 'true';
+    const startTime = Date.now(); // Start timing
 
     try {
-        const headlines = await scrapeNews(keyword, name, includeThumb); 
-        res.json({ results: headlines, count: headlines.length });
+        const headlines = await scrapeNews(keyword, name, includeThumb);
+        const duration = Date.now() - startTime; // Calculate duration in milliseconds
+
+        res.json({
+            results: headlines,
+            count: headlines.length,
+            queryTime: `${duration} ms` // Include query time in milliseconds
+        });
     } catch (error) {
         console.error('Failed to fetch news:', error);
         res.status(500).send('Error scraping news');
