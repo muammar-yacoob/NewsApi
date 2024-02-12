@@ -39,3 +39,25 @@ output:
 "queryTime": "616 ms"
 }
 ```
+The API sources news from a predefined list of newsletters defined in `newspapers.js`. You can extend this list by adding new entries:
+
+```javascript
+const newspapers = [
+    {
+        name: 'bbc',
+        address: 'https://www.bbc.co.uk/news',
+    },
+    {
+        name: 'guardian',
+        address: 'https://www.theguardian.com/uk',
+    },
+    {
+        name: 'aljazeera',
+        address: 'https://www.aljazeera.com',
+    },
+    // Add more sources here
+];
+Each entry should include the name of the newsletter and its address URL.
+
+Contribution
+Contributions and stars  are most welcome!
