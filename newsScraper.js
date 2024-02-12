@@ -8,12 +8,11 @@ async function scrapeNews(keyword, name, thumb) {
     let targetNewspapers = newspapers;
 
     if (name) {
-        const filteredNewspapers = newspapers.filter(newspaper => newspaper.name === name);
-        if (filteredNewspapers.length === 0) {
+        targetNewspapers = targetNewspapers.filter(newspaper => newspaper.name === name);
+        if (targetNewspapers.length === 0) {
             console.error(`No newspaper found with the name "${name}"`);
             return [];
         }
-        targetNewspapers = filteredNewspapers;
     }
 
     const allHeadlines = [];
@@ -29,32 +28,26 @@ async function scrapeNews(keyword, name, thumb) {
             for (const element of links) {
                 const title = $(element).text().trim();
                 let url = $(element).attr('href');
-                const baseUrl = new URL(newspaper.address).origin;
-
-                if (url && url.startsWith('/')) {
-                    url = baseUrl + url;
+                if (url.startsWith('/')) {
+                    url = new URL(url, newspaper.address).href;
                 }
 
-                if (url && keywordRegex.test(title) && !seenTitles.has(title)) {
-                    let newsItem = { title: title, url: url, source: newspaper.name };
+                if (keywordRegex.test(title) && !seenTitles.has(title)) {
+                    seenTitles.add(title); // Prevent processing the same title more than once
+                    
+                    // Initialize newsItem without imageUrl
+                    let newsItem = { title, url, source: newspaper.name };
 
                     if (thumb) {
-                        try {
-                            let imageUrl = await getFirstImageUrl(url);
-                            newsItem.imageUrl = imageUrl || defaultImageUrl;
-                        } catch (error) {
-                            console.error(`Failed to fetch image for ${url}:`, error);
-                            newsItem.imageUrl = defaultImageUrl;
-                        }
+                        // Asynchronously fetch the image URL, if thumb is true
+                        newsItem.imageUrl = await getFirstImageUrl(url).catch(() => defaultImageUrl);
                     }
 
                     allHeadlines.push(newsItem);
-                    seenTitles.add(title); // Mark this title as seen
                 }
             }
         } catch (error) {
             console.error(`Error scraping ${newspaper.name}:`, error);
-            continue;
         }
     }
 
@@ -62,20 +55,13 @@ async function scrapeNews(keyword, name, thumb) {
 }
 
 async function getFirstImageUrl(url) {
-    try {
-        const response = await axios.get(url);
-        const $ = cheerio.load(response.data);
-        let imageUrl = $('img').first().attr('src');
-
-        if (imageUrl && !imageUrl.startsWith('http')) {
-            imageUrl = new URL(imageUrl, url).toString();
-        }
-
-        return imageUrl;
-    } catch (error) {
-        console.error('Failed to fetch image:', error);
-        return undefined; // Allow for default image handling
+    const response = await axios.get(url);
+    const $ = cheerio.load(response.data);
+    let imageUrl = $('img').first().attr('src');
+    if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = new URL(imageUrl, url).toString();
     }
+    return imageUrl || defaultImageUrl; // Ensure imageUrl defaults to defaultImageUrl if undefined
 }
 
 module.exports = { scrapeNews };
