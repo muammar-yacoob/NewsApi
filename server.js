@@ -1,10 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const newsRoutes = require('./newsRoutes');
-
-
 const app = express();
-const PORT = process.env.PORT || 8001;
+const PORT = 8000;
 
 app.use('/', newsRoutes);
 app.use(express.static('public'));
