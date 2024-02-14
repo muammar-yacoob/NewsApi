@@ -2,11 +2,14 @@ const express = require('express');
 const { scrapeNews } = require('./newsScraper');
 const router = express.Router();
 
+// Landing page route
 router.get('/', (req, res) => {
-    res.send('Welcome to the news scraper!');
+    const currentDomain = req.protocol + '://' + req.get('host');
+    const exampleLink = `${currentDomain}/api/news?keyword=war&name=bbc&thumb=true`;
+    res.send(`<center><h2>Welcome to the news scraper!</h2><br>Example usage: <a href="${exampleLink}">${exampleLink}</a></center>`);
 });
 
-http://localhost:8001/api/news/?keyword=war&name=bbc&thumb=true
+http://localhost:8888/api/news/?keyword=war&name=bbc&thumb=true
 router.get('/api/news/:name?', async (req, res) => {
     const { keyword, name, thumb } = req.query; 
 
