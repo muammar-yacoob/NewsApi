@@ -3,7 +3,7 @@ const express = require('express');
 const serverless = require('serverless-http');
 const newsRoutes = require('./newsRoutes');
 const app = express();
-// const PORT = 8001;
+// const PORT = 8888;
 
 app.use('/', newsRoutes);
 app.use(express.static('public'));
