@@ -2,7 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const newspapers = require('./newspapers');
 
-const defaultImageUrl = 'http://localhost:8001/imgs/newspaper.png';
+const defaultImageUrl = 'http://localhost:8888/public/imgs/newspaper.png';
 
 async function scrapeNews(keyword, name, thumb) {
     let targetNewspapers = newspapers;

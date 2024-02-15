@@ -1,6 +1,11 @@
 # News Fetching API
 
 This API fetches news articles based on a keyword search. It also supports filtering news by the name of the newsletter and optionally includes thumbnail images of the news titles.
+### Give it a try!
+A sample limited to 3 newspapers is currently live on:
+- https://spark-apps.co.uk
+- https://rapidapi.com/muammaryacoob/api/news-live1
+
 
 ## Features
 
@@ -16,7 +21,7 @@ To fetch news articles, make a GET request to the API with the following paramet
 - `name` (optional): Specify the name of the newsletter to filter results by a specific news source.
 Example:
 ```shell
-http://localhost:8001/api/news/?keyword=tax&thumb=true&name=bbc
+http://localhost:8888/api/news/?keyword=tax&thumb=true&name=bbc
 ```
 output:
 ```json
