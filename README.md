@@ -19,6 +19,7 @@ To fetch news articles, make a GET request to the API with the following paramet
 - `keyword` (required): The keyword to search for in news articles.
 - `thumb` (optional): Set to `true` to include thumbnail images in the response.
 - `name` (optional): Specify the name of the newsletter to filter results by a specific news source.
+
 Example:
 ```shell
 http://localhost:8888/api/news/?keyword=tax&thumb=true&name=bbc
@@ -62,7 +63,8 @@ const newspapers = [
     },
     // Add more sources here
 ];
+```
 Each entry should include the name of the newsletter and its address URL.
 
-Contribution
-Contributions and stars  are most welcome!
+## Contribution
+Contributions are welcome and stars ⭐ are most appreciated!
